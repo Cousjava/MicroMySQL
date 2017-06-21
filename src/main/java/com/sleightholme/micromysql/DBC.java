@@ -66,6 +66,7 @@ public class DBC {
 
     public void connect() {
         try {
+            
             MysqlDataSource mysqlDataSource = new MysqlDataSource();
             mysqlDataSource.setUser(USER);
             mysqlDataSource.setPassword(PASSWORD);

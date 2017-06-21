@@ -41,6 +41,12 @@ package com.sleightholme.micromysql;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -54,6 +60,22 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "MysqlServlet", urlPatterns = {"/"})
 public class Mysqlservlet extends HttpServlet {
 
+    private Connection conn;
+    private PrintWriter out;
+    
+    private static final String CREATETABLE = "CREATE TABLE IF NOT EXISTS microtest (id INTEGER NOT NULL AUTO_INCREMENT, name VARCHAR(50), PRIMARY KEY(id))";
+    private static final String DROPTABLE = "DROP TABLE IF EXISTS microtest";
+    private static final String INSERTONE = "INSERT INTO microtest VALUES (1,'first record')";
+    private static final String GETONE = "SELECT * FROM microtest";
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        DBC dbc = new DBC();
+        dbc.connect();
+        dbc.getConnection();
+    }
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -66,18 +88,18 @@ public class Mysqlservlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Mysqlservlet</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Mysqlservlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
+        out = response.getWriter();
+        /* TODO output your page here. You may use following sample code. */
+        out.println("<!DOCTYPE html>");
+        out.println("<html>");
+        out.println("<head>");
+        out.println("<title>Servlet Mysqlservlet</title>");
+        out.println("</head>");
+        out.println("<body>");
+        out.println("<h1>Servlet Mysqlservlet at " + request.getContextPath() + "</h1>");
+        runQueries();
+        out.println("</body>");
+        out.println("</html>");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -116,7 +138,30 @@ public class Mysqlservlet extends HttpServlet {
      */
     @Override
     public String getServletInfo() {
-        return "Short description";
+        return "Test page for MySQL";
     }// </editor-fold>
+
+    public void runQueries() {
+        try {
+            PreparedStatement ps = conn.prepareStatement(CREATETABLE);
+            ps.execute();
+            out.println("Created table<br>");
+            ps = conn.prepareCall(INSERTONE);
+            ps.execute();
+            out.println("Entered record<br>");
+            ps = conn.prepareStatement(GETONE);
+            ResultSet rs = ps.executeQuery();
+            out.println("ID: " + rs.getInt(0) + ", value: " + rs.getString(0));
+            ps.execute(DROPTABLE);
+        } catch (SQLException ex) {
+            ex.printStackTrace(out);
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException ex) {
+               ex.printStackTrace(out);
+            }
+        }
+    }
 
 }
