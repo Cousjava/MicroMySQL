@@ -53,6 +53,7 @@ import java.sql.Statement;
 public class DBC {
 
     private Connection connection;
+    private MysqlDataSource ds;
 
     public enum Databases {
         MYSQL, MARIADB

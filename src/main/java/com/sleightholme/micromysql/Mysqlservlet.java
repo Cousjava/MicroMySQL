@@ -73,7 +73,7 @@ public class Mysqlservlet extends HttpServlet {
         super.init();
         DBC dbc = new DBC();
         dbc.connect();
-        dbc.getConnection();
+        conn = dbc.getConnection();
     }
 
     /**
@@ -143,24 +143,23 @@ public class Mysqlservlet extends HttpServlet {
 
     public void runQueries() {
         try {
-            PreparedStatement ps = conn.prepareStatement(CREATETABLE);
+            PreparedStatement ps = conn.prepareStatement(DROPTABLE);
             ps.execute();
+            ps.execute(CREATETABLE);
             out.println("Created table<br>");
             ps = conn.prepareCall(INSERTONE);
             ps.execute();
             out.println("Entered record<br>");
             ps = conn.prepareStatement(GETONE);
             ResultSet rs = ps.executeQuery();
-            out.println("ID: " + rs.getInt(0) + ", value: " + rs.getString(0));
+            while  (rs.next()){
+                out.print("ID: " + rs.getInt(1));
+                out.print(" value: " + rs.getString(2) + "<br>");
+            }
             ps.execute(DROPTABLE);
+            conn.close();
         } catch (SQLException ex) {
             ex.printStackTrace(out);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException ex) {
-               ex.printStackTrace(out);
-            }
         }
     }
 
